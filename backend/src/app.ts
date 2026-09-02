@@ -6,6 +6,7 @@ import userRoutes from "./modules/user/userRoutes";
 import contactRoutes from "./modules/conatcts/contact.routes";
 import leadRoutes from "./modules/leads/lead.routes";
 import dealRoutes from "./modules/deals/deal.routes";
+import reportRoutes from './modules/reports/report.routes';
 
 const app = express();
 
@@ -15,18 +16,10 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/user', userRoutes)
-app.use(
-    '/api/v1/contacts',
-    contactRoutes
-);
-app.use(
-    '/api/v1/leads',
-    leadRoutes
-);
+app.use('/api/v1/contacts', contactRoutes);
+app.use('/api/v1/leads', leadRoutes);
+app.use('/api/v1/deals', dealRoutes);
+app.use('/api/v1/reports', reportRoutes);
 
-app.use(
-    '/api/v1/deals',
-    dealRoutes
-);
 
 export default app;

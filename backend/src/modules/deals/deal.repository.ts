@@ -102,4 +102,41 @@ export class DealRepository {
     ) {
         return Deal.findByIdAndDelete(id);
     }
+
+    async updateStage(
+        id: string,
+        stage: string
+    ) {
+        return Deal.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    stage,
+                },
+
+                $push: {
+                    stageHistory: {
+                        stage,
+                        changedAt: new Date(),
+                    },
+                },
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        )
+            .populate(
+                'contact',
+                'firstName lastName email phone company'
+            )
+            .populate(
+                'lead',
+                'title status source value'
+            )
+            .populate(
+                'assignedTo',
+                'firstName lastName email'
+            );
+    }
 }

@@ -198,7 +198,6 @@ export class DealService {
         id: string,
         stage: DealStage
     ) {
-
         this.validateId(id);
 
         const deal =
@@ -211,29 +210,12 @@ export class DealService {
             );
         }
 
-        // Don't create unnecessary
-        // history records.
         if (deal.stage === stage) {
             return deal;
         }
 
-        const updatedDeal =
-            await this.dealRepository.update(
-                id,
-                {
-                    stage,
-
-                    $push: {
-                        stageHistory: {
-                            stage,
-                            changedAt:
-                                new Date(),
-                        },
-                    },
-                } as any
-            );
-
-        return updatedDeal;
+        return this.dealRepository
+            .updateStage(id, stage);
     }
 
     /**
