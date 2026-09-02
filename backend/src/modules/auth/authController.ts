@@ -51,10 +51,18 @@ export const login = async (req: Request, res: Response) => {
 
         const result = await AuthService.loginUser(identifier, password);
 
+        // Set httpOnly cookie with JWT token (1 day expiry)
+        res.cookie("crm_token", result.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 24 * 60 * 60 * 1000, // 1 day in ms
+        });
+
         return res.status(200).json({
             message: "User logged in successfully",
             user: result.user,
-            token: result.token
+            token: result.token,
         });
 
     } catch (error: any) {
@@ -70,6 +78,32 @@ export const login = async (req: Request, res: Response) => {
         return res.status(500).json({
             message: "Internal server error"
         });
+    }
+};
+
+export const logout = (_req: Request, res: Response) => {
+    res.clearCookie("crm_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
+    return res.status(200).json({ message: "Logged out successfully" });
+};
+
+export const getMe = async (req: Request, res: Response) => {
+    try {
+        const token = req.cookies?.crm_token;
+        if (!token) {
+            return res.status(401).json({ message: "Not authenticated" });
+        }
+        const jwt = await import("jsonwebtoken");
+        const decoded = jwt.default.verify(token, process.env.JWT_SECRET as string) as any;
+        return res.status(200).json({
+            message: "Authenticated",
+            user: { id: decoded.id, email: decoded.email },
+        });
+    } catch {
+        return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
 

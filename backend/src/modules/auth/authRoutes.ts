@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, sendOtp, signup, verifyOtp } from "./authController";
+import { login, logout, getMe, sendOtp, signup, verifyOtp } from "./authController";
 
 
 const router = Router();
@@ -193,4 +193,7 @@ router.post("/send-otp", sendOtp)
  */
 router.get('/verify-otp', verifyOtp)
 
-export default router;
+router.post('/logout', logout)
+router.get('/me', getMe)
+
+export default router;

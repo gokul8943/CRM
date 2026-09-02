@@ -1,56 +1,41 @@
 import apiClient from '../../../lib/axios';
-
 import type {
-    Contact,
-    CreateContactRequest,
-    UpdateContactRequest,
+  Contact,
+  CreateContactRequest,
+  UpdateContactRequest,
 } from '../types/contact.types';
 
-export const getContacts = async () => {
-    const response =
-        await apiClient.get<Contact[]>('/contacts');
+interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
 
-    return response.data;
+export const getContacts = async (): Promise<Contact[]> => {
+  const response = await apiClient.get<ApiResponse<Contact[]>>('/contacts');
+  return response.data.data;
 };
 
-export const getContact = async (
-    id: string,
-) => {
-    const response =
-        await apiClient.get<Contact>(
-            `/contacts/${id}`,
-        );
-
-    return response.data;
+export const getContact = async (id: string): Promise<Contact> => {
+  const response = await apiClient.get<ApiResponse<Contact>>(`/contacts/${id}`);
+  return response.data.data;
 };
 
 export const createContact = async (
-    data: CreateContactRequest,
-) => {
-    const response =
-        await apiClient.post<Contact>(
-            '/contacts',
-            data,
-        );
-
-    return response.data;
+  data: CreateContactRequest
+): Promise<Contact> => {
+  const response = await apiClient.post<ApiResponse<Contact>>('/contacts', data);
+  return response.data.data;
 };
 
 export const updateContact = async (
-    id: string,
-    data: UpdateContactRequest,
-) => {
-    const response =
-        await apiClient.patch<Contact>(
-            `/contacts/${id}`,
-            data,
-        );
-
-    return response.data;
+  id: string,
+  data: UpdateContactRequest
+): Promise<Contact> => {
+  const response = await apiClient.patch<ApiResponse<Contact>>(`/contacts/${id}`, data);
+  return response.data.data;
 };
 
-export const deleteContact = async (
-    id: string,
-) => {
-    await apiClient.delete(`/contacts/${id}`);
+export const deleteContact = async (id: string): Promise<void> => {
+  await apiClient.delete(`/contacts/${id}`);
 };

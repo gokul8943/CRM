@@ -14,14 +14,15 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction
 ) => {
+  // Accept token from cookie (preferred) or Authorization header
+  const cookieToken = req.cookies?.crm_token;
   const authHeader = req.headers.authorization;
+  const headerToken = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+  const token = cookieToken || headerToken;
 
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({ message: "Access token missing" });
   }
-
-  const token = authHeader.split(" ")[1];
 
   if (!process.env.JWT_SECRET) {
     return res.status(500).json({ message: "JWT secret not configured" });

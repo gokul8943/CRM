@@ -1,15 +1,36 @@
-export interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: 'ADMIN' | 'USER';
+export interface AuthUser {
+  id: string;
+  email: string;
+  mobile?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface LoginRequest {
-    email: string;
-    password: string;
+  identifier: string; // email or mobile
+  password: string;
+}
+
+export interface SignupRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  password: string;
 }
 
 export interface LoginResponse {
-    user: User;
+  message: string;
+  user: AuthUser;
+  token: string;
+}
+
+export interface SignupResponse {
+  message: string;
+  user: AuthUser;
+}
+
+export interface MeResponse {
+  message: string;
+  user: AuthUser;
 }

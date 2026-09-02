@@ -7,10 +7,18 @@ import contactRoutes from "./modules/conatcts/contact.routes";
 import leadRoutes from "./modules/leads/lead.routes";
 import dealRoutes from "./modules/deals/deal.routes";
 import reportRoutes from './modules/reports/report.routes';
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
+app.use(cookieParser());
 app.use(express.json());
+
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
