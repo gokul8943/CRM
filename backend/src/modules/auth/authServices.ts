@@ -2,6 +2,7 @@ import * as AuthRepository from "./authRepository";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { generateOtp } from "../../helper/authHelper";
+import mongoose from "mongoose";
 
 export const signUp = async (
     firstName: string,
@@ -88,6 +89,23 @@ export const loginUser = async (
         accessToken,
         refreshToken,
     };
+};
+
+export const findUserById = async (
+    userId: string
+) => {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        throw new Error("Invalid user ID");
+    }
+
+    const user =
+        await AuthRepository.findUserById(userId);
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    return user;
 };
 
 

@@ -48,57 +48,97 @@ export const login = async (
 
         if (!identifier || !password) {
             return res.status(400).json({
-                message: "Identifier and password are required",
+                message:
+                    "Identifier and password are required",
             });
         }
 
-        const result = await AuthService.loginUser(
-            identifier,
-            password
-        );
+        const result =
+            await AuthService.loginUser(
+                identifier,
+                password
+            );
 
-        // Store refresh token in httpOnly cookie
-        res.cookie("crm_refresh_token", result.refreshToken, {
-            httpOnly: true,
+        const isProduction =
+            process.env.NODE_ENV === "production";
 
-            secure: process.env.NODE_ENV === "production",
+        // Access Token
+        res.cookie(
+            "crm_access_token",
+            result.accessToken,
+            {
+                httpOnly: true,
 
-            sameSite:
-                process.env.NODE_ENV === "production"
+                secure: isProduction,
+
+                sameSite: isProduction
                     ? "strict"
                     : "lax",
 
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge:
+                    15 * 60 * 1000,
 
-            path: "/",
-        });
+                path: "/",
+            }
+        );
+
+        // Refresh Token
+        res.cookie(
+            "crm_refresh_token",
+            result.refreshToken,
+            {
+                httpOnly: true,
+
+                secure: isProduction,
+
+                sameSite: isProduction
+                    ? "strict"
+                    : "lax",
+
+                maxAge:
+                    7 * 24 * 60 * 60 * 1000,
+
+                path: "/",
+            }
+        );
 
         return res.status(200).json({
-            message: "User logged in successfully",
+            message:
+                "User logged in successfully",
 
             user: result.user,
-
-            accessToken: result.accessToken,
         });
 
     } catch (error: any) {
 
-        if (error.message === "User not found") {
+        if (
+            error.message ===
+            "User not found"
+        ) {
             return res.status(401).json({
-                message: "Invalid username/email/mobile",
+                message:
+                    "Invalid username/email/mobile",
             });
         }
 
-        if (error.message === "Invalid password") {
+        if (
+            error.message ===
+            "Invalid password"
+        ) {
             return res.status(401).json({
-                message: "Invalid password",
+                message:
+                    "Invalid password",
             });
         }
 
-        console.error("Login error:", error);
+        console.error(
+            "Login error:",
+            error
+        );
 
         return res.status(500).json({
-            message: "Internal server error",
+            message:
+                "Internal server error",
         });
     }
 };
@@ -107,26 +147,37 @@ export const logout = async (
     req: Request,
     res: Response
 ) => {
+    const isProduction =
+        process.env.NODE_ENV === "production";
 
+    const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction
+            ? ("strict" as const)
+            : ("lax" as const),
+    };
+
+    // Clear access token
     res.clearCookie(
-        'crm_refresh_token',
+        "crm_access_token",
         {
-            httpOnly: true,
+            ...cookieOptions,
+            path: "/",
+        }
+    );
 
-            secure:
-                process.env.NODE_ENV === 'production',
-
-            sameSite:
-                process.env.NODE_ENV === 'production'
-                    ? 'strict'
-                    : 'lax',
-
-            path: '/',
+    // Clear refresh token
+    res.clearCookie(
+        "crm_refresh_token",
+        {
+            ...cookieOptions,
+            path: "/",
         }
     );
 
     return res.status(200).json({
-        message: 'Logged out successfully',
+        message: "Logged out successfully",
     });
 };
 
@@ -135,7 +186,8 @@ export const getMe = async (
     res: Response
 ) => {
     try {
-        const authHeader = req.headers.authorization;
+        const authHeader =
+            req.headers.authorization;
 
         if (!authHeader) {
             return res.status(401).json({
@@ -143,11 +195,16 @@ export const getMe = async (
             });
         }
 
-        const [scheme, token] = authHeader.split(" ");
+        const [scheme, token] =
+            authHeader.split(" ");
 
-        if (scheme !== "Bearer" || !token) {
+        if (
+            scheme !== "Bearer" ||
+            !token
+        ) {
             return res.status(401).json({
-                message: "Invalid authorization header",
+                message:
+                    "Invalid authorization header",
             });
         }
 
@@ -162,32 +219,71 @@ export const getMe = async (
 
         if (decoded.type !== "access") {
             return res.status(401).json({
-                message: "Invalid access token",
+                message:
+                    "Invalid access token",
+            });
+        }
+
+        // Get latest user data from database
+        const user =
+            await AuthService.findUserById(
+                decoded.id
+            );
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
             });
         }
 
         return res.status(200).json({
             message: "Authenticated",
+
             user: {
-                id: decoded.id,
-                email: decoded.email,
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                mobile: user.mobile,
+                role: user.role,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
             },
         });
 
     } catch (error) {
 
-        if (error instanceof jwt.TokenExpiredError) {
+        if (
+            error instanceof
+            jwt.TokenExpiredError
+        ) {
             return res.status(401).json({
-                message: "Access token expired",
+                message:
+                    "Access token expired",
             });
         }
 
-        return res.status(401).json({
-            message: "Invalid access token",
+        if (
+            error instanceof
+            jwt.JsonWebTokenError
+        ) {
+            return res.status(401).json({
+                message:
+                    "Invalid access token",
+            });
+        }
+
+        console.error(
+            "Get current user error:",
+            error
+        );
+
+        return res.status(500).json({
+            message:
+                "Internal server error",
         });
     }
 };
-
 
 export const refreshAccessToken = async (
     req: Request,

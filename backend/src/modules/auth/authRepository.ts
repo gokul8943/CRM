@@ -37,6 +37,10 @@ export const findUserByIdentifier = async (identifier: string) => {
     return user;
 };
 
+export const findUserById = async (id: string) => {
+    const user = await userModel.findById(id);
+    return user;
+}
 
 export const verifyOtp = async (email: string, otp: string) => {
     const otpRecord = await otpModel.findOne({ email, otp });
