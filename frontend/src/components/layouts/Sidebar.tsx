@@ -46,7 +46,7 @@ export const Sidebar: React.FC = () => {
         </div>
         <div>
           <h1 className="text-base font-bold text-slate-900 tracking-tight leading-none">
-            Mini CRM
+            CRM
           </h1>
           <span className="text-2xs text-slate-400 font-medium">
             Pipeline Management
@@ -56,9 +56,6 @@ export const Sidebar: React.FC = () => {
 
       {/* Navigation Links */}
       <nav className="space-y-1.5 p-4 flex-1">
-        <div className="text-2xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">
-          Workspace
-        </div>
         {navigation.map((item) => {
           const Icon = item.icon;
           return (

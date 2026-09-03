@@ -14,8 +14,6 @@ import {
   Target,
   Handshake,
   Trophy,
-  TrendingUp,
-  Plus,
   ArrowUpRight,
   ArrowRight,
   Loader2,
@@ -80,41 +78,14 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Banner & Quick Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-6 md:p-8 rounded-3xl text-white shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-linear-to-r from-slate-950 via-slate-900 to-slate-800 p-6 md:p-8 rounded-3xl text-white shadow-xl">
         <div className="space-y-1">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            <TrendingUp className="w-3.5 h-3.5" /> Pipeline Live Dashboard
-          </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
             Welcome to Mini CRM
           </h1>
           <p className="text-slate-300 text-sm max-w-xl">
             Track customer lifecycles from lead discovery and stage advancement to closed revenue.
           </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => navigate('/deals?newDeal=true')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-sm transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            New Deal
-          </button>
-          <button
-            onClick={() => navigate('/leads')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-xs transition-all border border-white/10"
-          >
-            <Plus className="w-4 h-4" />
-            New Lead
-          </button>
-          <button
-            onClick={() => navigate('/contacts')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-xs transition-all border border-white/10"
-          >
-            <Plus className="w-4 h-4" />
-            New Contact
-          </button>
         </div>
       </div>
 
