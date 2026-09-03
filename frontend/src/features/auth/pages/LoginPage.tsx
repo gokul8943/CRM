@@ -1,37 +1,81 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../api/auth.api';
-import { useAuthStore } from '../../../store/auth.store';
+import React, { useState } from "react";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
+
+import { login } from "../api/auth.api";
+import { useAuthStore } from "../../../store/auth.store";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const setAuth = useAuthStore(
-    (state: any) => state.setAuth
+  const [identifier, setIdentifier] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  // Get setUser from Zustand
+  const setUser = useAuthStore(
+    (state) => state.setUser
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
-    if (!identifier.trim() || !password.trim()) {
-      setError('Please enter your email/mobile and password.');
+
+    if (
+      !identifier.trim() ||
+      !password.trim()
+    ) {
+      setError(
+        "Please enter your email/mobile and password."
+      );
+
       return;
     }
-    setError('');
+
+    setError("");
     setIsLoading(true);
+
     try {
-      const result = await login({ identifier, password });
-      setAuth(
-        result.user,
-        result.accessToken
-      );
-      navigate('/dashboard', { replace: true });
+      const result = await login({
+        identifier,
+        password,
+      });
+
+      /**
+       * Backend has already stored:
+       *
+       * crm_access_token
+       * crm_refresh_token
+       *
+       * as httpOnly cookies.
+       *
+       * We only store the user in Zustand.
+       */
+      setUser(result.user);
+
+      navigate("/dashboard", {
+        replace: true,
+      });
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Login failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -40,12 +84,13 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
+
         {/* Brand */}
         <div className="flex flex-col items-center">
-
           <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
             CRM
           </h2>
+
           <p className="mt-2 text-center text-sm text-slate-500">
             Enterprise Sales Intelligence
           </p>
@@ -53,99 +98,221 @@ const LoginPage: React.FC = () => {
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200 sm:rounded-xl sm:px-10 border border-slate-200">
+
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">Welcome back</h3>
-              <p className="text-sm text-slate-500">Sign in to continue to your workspace</p>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Welcome back
+              </h3>
+
+              <p className="text-sm text-slate-500">
+                Sign in to continue to your workspace
+              </p>
             </div>
 
-            <form className="space-y-5" onSubmit={handleSubmit} id="login-form">
-              {/* Identifier Field */}
+            <form
+              className="space-y-5"
+              onSubmit={handleSubmit}
+              id="login-form"
+            >
+
+              {/* Identifier */}
               <div>
-                <label htmlFor="login-identifier" className="block text-sm font-medium text-slate-700">
+                <label
+                  htmlFor="login-identifier"
+                  className="block text-sm font-medium text-slate-700"
+                >
                   Email or Mobile
                 </label>
+
                 <div className="mt-1 relative rounded-md shadow-sm">
+
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      className="h-5 w-5 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
+                      <circle
+                        cx="12"
+                        cy="7"
+                        r="4"
+                      />
                     </svg>
                   </div>
+
                   <input
                     id="login-identifier"
                     type="text"
                     className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-500 sm:text-sm placeholder-slate-400 transition-colors"
                     placeholder="john@example.com or +1234567890"
                     value={identifier}
-                    onChange={e => setIdentifier(e.target.value)}
+                    onChange={(e) =>
+                      setIdentifier(
+                        e.target.value
+                      )
+                    }
                     autoComplete="username"
                     disabled={isLoading}
                   />
                 </div>
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div>
                 <div className="flex items-center justify-between">
-                  <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">
+
+                  <label
+                    htmlFor="login-password"
+                    className="block text-sm font-medium text-slate-700"
+                  >
                     Password
                   </label>
-                  <Link to="/forgot-password" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                  >
                     Forgot password?
                   </Link>
+
                 </div>
+
                 <div className="mt-1 relative rounded-md shadow-sm">
+
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <svg
+                      className="h-5 w-5 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <rect
+                        x="3"
+                        y="11"
+                        width="18"
+                        height="11"
+                        rx="2"
+                        ry="2"
+                      />
+
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
                   </div>
+
                   <input
                     id="login-password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
                     className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-500 sm:text-sm placeholder-slate-400 transition-colors"
                     placeholder="Enter your password"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e) =>
+                      setPassword(
+                        e.target.value
+                      )
+                    }
                     autoComplete="current-password"
                     disabled={isLoading}
                   />
+
                   <button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
-                    onClick={() => setShowPassword(v => !v)}
+                    onClick={() =>
+                      setShowPassword(
+                        (value) => !value
+                      )
+                    }
                     tabIndex={-1}
                     aria-label="Toggle password visibility"
                   >
                     {showPassword ? (
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                        <line x1="1" y1="1" x2="23" y2="23" />
+
+                        <line
+                          x1="1"
+                          y1="1"
+                          x2="23"
+                          y2="23"
+                        />
                       </svg>
                     ) : (
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
+
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="3"
+                        />
                       </svg>
                     )}
                   </button>
+
                 </div>
               </div>
 
-              {/* Error Message */}
+              {/* Error */}
               {error && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-start" role="alert">
-                  <svg className="h-5 w-5 text-red-500 mt-0.5 mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="15" y1="9" x2="9" y2="15" />
-                    <line x1="9" y1="9" x2="15" y2="15" />
+                <div
+                  className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-start"
+                  role="alert"
+                >
+                  <svg
+                    className="h-5 w-5 text-red-500 mt-0.5 mr-2 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                    />
+
+                    <line
+                      x1="15"
+                      y1="9"
+                      x2="9"
+                      y2="15"
+                    />
+
+                    <line
+                      x1="9"
+                      y1="9"
+                      x2="15"
+                      y2="15"
+                    />
                   </svg>
-                  <span className="text-sm text-red-700">{error}</span>
+
+                  <span className="text-sm text-red-700">
+                    {error}
+                  </span>
                 </div>
               )}
 
-              {/* Submit Button */}
+              {/* Submit */}
               <button
                 type="submit"
                 id="login-submit"
@@ -154,31 +321,61 @@ const LoginPage: React.FC = () => {
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
                     </svg>
+
                     Signing in...
                   </>
                 ) : (
                   <>
                     Sign in
-                    <svg className="ml-2 -mr-1 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+
+                    <svg
+                      className="ml-2 -mr-1 h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                   </>
                 )}
               </button>
+
             </form>
 
             <div className="mt-6">
               <div className="relative">
+
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200" />
                 </div>
+
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-slate-500">Don't have an account?</span>
+                  <span className="px-2 bg-white text-slate-500">
+                    Don't have an account?
+                  </span>
                 </div>
+
               </div>
 
               <div className="mt-6">
@@ -194,6 +391,7 @@ const LoginPage: React.FC = () => {
             <p className="mt-8 text-center text-xs text-slate-400">
               Protected by enterprise-grade security & 256-bit SSL encryption
             </p>
+
           </div>
         </div>
       </div>

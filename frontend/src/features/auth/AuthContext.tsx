@@ -4,16 +4,18 @@ import React, {
   useEffect,
   useState,
   useCallback,
-} from 'react';
+} from "react";
 
-import type { AuthUser } from '../../types/auth.types';
+import type { AuthUser } from "../../types/auth.types";
 
 import {
   getCurrentUser,
   logout as logoutApi,
-} from './api/auth.api';
+} from "./api/auth.api";
 
-import { useAuthStore } from '../../store/auth.store';
+import {
+  useAuthStore,
+} from "../../store/auth.store";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -24,7 +26,9 @@ interface AuthContextValue {
 }
 
 const AuthContext =
-  createContext<AuthContextValue | null>(null);
+  createContext<AuthContextValue | null>(
+    null
+  );
 
 export const AuthProvider: React.FC<{
   children: React.ReactNode;
@@ -34,8 +38,8 @@ export const AuthProvider: React.FC<{
     (state) => state.user
   );
 
-  const setAuth = useAuthStore(
-    (state) => state.setAuth
+  const setUser = useAuthStore(
+    (state) => state.setUser
   );
 
   const clearAuth = useAuthStore(
@@ -47,141 +51,70 @@ export const AuthProvider: React.FC<{
 
   /**
    * Initialize authentication
-   *
-   * 1. Try to get current user.
-   * 2. If access token is expired/missing,
-   *    Axios interceptor will refresh it.
-   * 3. Get current user again.
    */
   useEffect(() => {
-
     let mounted = true;
 
-    const initializeAuth = async () => {
-
-      try {
-
-        let currentUser;
-
+    const initializeAuth =
+      async () => {
         try {
-
-          // First try /me
           const response =
             await getCurrentUser();
 
-          currentUser = response.user;
-
-        } catch (error: any) {
-
-          // Axios interceptor will attempt
-          // refresh automatically on 401.
-
-          const accessToken =
-            useAuthStore.getState()
-              .accessToken;
-
-          if (!accessToken) {
-            throw error;
-          }
-
-          const response =
-            await getCurrentUser();
-
-          currentUser = response.user;
-        }
-
-        if (mounted) {
-
-          const accessToken =
-            useAuthStore.getState()
-              .accessToken;
-
-          if (accessToken) {
-            setAuth(
-              currentUser,
-              accessToken
+          if (mounted) {
+            setUser(
+              response.user
             );
           }
+        } catch (error) {
+          if (mounted) {
+            clearAuth();
+          }
+        } finally {
+          if (mounted) {
+            setIsLoading(false);
+          }
         }
-
-      } catch {
-
-        if (mounted) {
-          clearAuth();
-        }
-
-      } finally {
-
-        if (mounted) {
-          setIsLoading(false);
-        }
-
-      }
-    };
+      };
 
     initializeAuth();
 
     return () => {
       mounted = false;
     };
-
-  }, [setAuth, clearAuth]);
-
+  }, [setUser, clearAuth]);
 
   /**
-   * Manually refresh current user
+   * Refresh current user
    */
-  const refreshUser = useCallback(
-    async () => {
-
+  const refreshUser =
+    useCallback(async () => {
       try {
-
         const response =
           await getCurrentUser();
 
-        const accessToken =
-          useAuthStore.getState()
-            .accessToken;
-
-        if (accessToken) {
-
-          setAuth(
-            response.user,
-            accessToken
-          );
-
-        }
-
-      } catch {
-
+        setUser(
+          response.user
+        );
+      } catch (error) {
         clearAuth();
-
       }
-
-    },
-    [setAuth, clearAuth]
-  );
-
+    }, [
+      setUser,
+      clearAuth,
+    ]);
 
   /**
    * Logout
    */
-  const logout = useCallback(
-    async () => {
-
+  const logout =
+    useCallback(async () => {
       try {
-
         await logoutApi();
-
       } finally {
-
         clearAuth();
-
       }
-    },
-    [clearAuth]
-  );
-
+    }, [clearAuth]);
 
   return (
     <AuthContext.Provider
@@ -198,15 +131,13 @@ export const AuthProvider: React.FC<{
   );
 };
 
-
 export const useAuth = () => {
-
   const ctx =
     useContext(AuthContext);
 
   if (!ctx) {
     throw new Error(
-      'useAuth must be used within AuthProvider'
+      "useAuth must be used within AuthProvider"
     );
   }
 

@@ -35,6 +35,7 @@ export const findUserByIdentifier = async (identifier: string) => {
     });
 
     return user;
+    console.log("User found:", user);
 };
 
 export const findUserById = async (id: string) => {

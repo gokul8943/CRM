@@ -78,7 +78,7 @@ export const login = async (
                 maxAge:
                     15 * 60 * 1000,
 
-                path: "/",
+                path: "/api/v1",
             }
         );
 
@@ -163,7 +163,7 @@ export const logout = async (
         "crm_access_token",
         {
             ...cookieOptions,
-            path: "/",
+            path: "/api/v1",
         }
     );
 
@@ -186,25 +186,18 @@ export const getMe = async (
     res: Response
 ) => {
     try {
-        const authHeader =
-            req.headers.authorization;
+        // Get access token from httpOnly cookie
+        const token =
+            req.cookies?.crm_access_token;
 
-        if (!authHeader) {
+        console.log(
+            "Access token exists:",
+            !!token
+        );
+
+        if (!token) {
             return res.status(401).json({
                 message: "Access token required",
-            });
-        }
-
-        const [scheme, token] =
-            authHeader.split(" ");
-
-        if (
-            scheme !== "Bearer" ||
-            !token
-        ) {
-            return res.status(401).json({
-                message:
-                    "Invalid authorization header",
             });
         }
 
@@ -214,13 +207,13 @@ export const getMe = async (
         ) as {
             id: string;
             email?: string;
+            role?: "admin" | "agent";
             type: "access";
         };
 
         if (decoded.type !== "access") {
             return res.status(401).json({
-                message:
-                    "Invalid access token",
+                message: "Invalid access token",
             });
         }
 
@@ -240,9 +233,11 @@ export const getMe = async (
             message: "Authenticated",
 
             user: {
-                id: user._id,
+                id: user._id.toString(),
                 firstName: user.firstName,
                 lastName: user.lastName,
+                email: user.email,
+                mobile: user.mobile,
                 role: user.role
             },
         });

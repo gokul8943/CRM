@@ -1,47 +1,31 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import type { AuthUser } from '../types/auth.types';
+import type { AuthUser } from "../types/auth.types";
 
 interface AuthState {
     user: AuthUser | null;
-    accessToken: string | null;
     isAuthenticated: boolean;
 
-    setAuth: (
-        user: AuthUser,
-        accessToken: string
-    ) => void;
-
-    setAccessToken: (
-        accessToken: string
-    ) => void;
+    setUser: (user: AuthUser) => void;
 
     clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-    user: null,
+export const useAuthStore =
+    create<AuthState>((set) => ({
+        user: null,
 
-    accessToken: null,
+        isAuthenticated: false,
 
-    isAuthenticated: false,
+        setUser: (user) =>
+            set({
+                user,
+                isAuthenticated: true,
+            }),
 
-    setAuth: (user, accessToken) =>
-        set({
-            user,
-            accessToken,
-            isAuthenticated: true,
-        }),
-
-    setAccessToken: (accessToken) =>
-        set({
-            accessToken,
-        }),
-
-    clearAuth: () =>
-        set({
-            user: null,
-            accessToken: null,
-            isAuthenticated: false,
-        }),
-}));
+        clearAuth: () =>
+            set({
+                user: null,
+                isAuthenticated: false,
+            }),
+    }));

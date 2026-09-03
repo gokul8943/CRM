@@ -85,6 +85,7 @@ export const loginUser = async (
             id: user._id,
             email: user.email,
             mobile: user.mobile,
+            role: user.role
         },
         accessToken,
         refreshToken,
