@@ -5,6 +5,24 @@ export class LeadRepository {
     return Lead.create(data);
   }
 
+  async findByCreatedBy(userId: string) {
+    return Lead.find({
+      createdBy: userId,
+    })
+      .populate(
+        "contact",
+        "firstName lastName email phone company"
+      )
+      .populate(
+        "assignedTo",
+        "firstName lastName email"
+      )
+      .sort({
+        createdAt: -1,
+      });
+  }
+
+
   async findAll() {
     return Lead.find()
       .populate(
@@ -17,6 +35,7 @@ export class LeadRepository {
       )
       .sort({ createdAt: -1 });
   }
+
 
   async findById(id: string) {
     return Lead.findById(id)

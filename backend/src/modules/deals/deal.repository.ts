@@ -30,6 +30,27 @@ export class DealRepository {
             });
     }
 
+    async findByCreatedBy(userId: string) {
+        return Deal.find({
+            createdBy: userId,
+        })
+            .populate(
+                "contact",
+                "firstName lastName email phone company"
+            )
+            .populate(
+                "lead",
+                "title status source value"
+            )
+            .populate(
+                "assignedTo",
+                "firstName lastName email"
+            )
+            .sort({
+                createdAt: -1,
+            });
+    }
+
     async findById(
         id: string
     ) {

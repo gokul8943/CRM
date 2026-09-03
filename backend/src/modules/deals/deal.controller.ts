@@ -10,6 +10,7 @@ import {
 import {
     asyncHandler,
 } from '../../utils/asyncHandler';
+import { AuthRequest } from '../../middleware/Auth';
 
 export class DealController {
 
@@ -26,18 +27,20 @@ export class DealController {
      */
     createDeal = asyncHandler(
         async (
-            req: Request,
+            req: AuthRequest,
             res: Response
         ) => {
 
             const deal =
-                await this.dealService
-                    .createDeal(req.body);
+                await this.dealService.createDeal(
+                    req.body,
+                    req.user!.id
+                );
 
             res.status(201).json({
                 success: true,
                 message:
-                    'Deal created successfully',
+                    "Deal created successfully",
                 data: deal,
             });
         }
@@ -48,23 +51,23 @@ export class DealController {
      */
     getDeals = asyncHandler(
         async (
-            _req: Request,
+            req: AuthRequest,
             res: Response
         ) => {
 
             const deals =
-                await this.dealService
-                    .getDeals();
+                await this.dealService.getDeals(
+                    req.user!.id,
+                    req.user!.role!
+                );
 
             res.status(200).json({
                 success: true,
-                message:
-                    'Deals fetched successfully',
+                message: "Deals fetched successfully",
                 data: deals,
             });
         }
     );
-
     /**
      * Get Deal By ID
      */

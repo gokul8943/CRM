@@ -9,6 +9,7 @@ import {
 } from './deal.validation';
 
 import { validate } from '../../middleware/validation.middleware';
+import { authenticateToken } from '../../middleware/Auth';
 
 const router = Router();
 
@@ -236,6 +237,7 @@ const dealController = new DealController();
  */
 router.post(
     '/',
+    authenticateToken,
     validate(createDealSchema),
     dealController.createDeal
 );
@@ -268,6 +270,7 @@ router.post(
  */
 router.get(
     '/',
+    authenticateToken,
     dealController.getDeals
 );
 

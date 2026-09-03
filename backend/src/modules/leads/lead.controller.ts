@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import { LeadService } from './lead.service';
 import { asyncHandler } from '../../utils/asyncHandler';
+import { AuthRequest } from '../../middleware/Auth';
 
 export class LeadController {
   private leadService: LeadService;
@@ -11,28 +12,40 @@ export class LeadController {
   }
 
   createLead = asyncHandler(
-    async (req: Request, res: Response) => {
+    async (
+      req: AuthRequest,
+      res: Response
+    ) => {
+
       const lead =
         await this.leadService.createLead(
-          req.body
+          req.body,
+          req.user!.id
         );
 
       res.status(201).json({
         success: true,
-        message: 'Lead created successfully',
+        message: "Lead created successfully",
         data: lead,
       });
     }
   );
 
   getLeads = asyncHandler(
-    async (_req: Request, res: Response) => {
+    async (
+      req: AuthRequest,
+      res: Response
+    ) => {
+
       const leads =
-        await this.leadService.getLeads();
+        await this.leadService.getLeads(
+          req.user!.id,
+          req.user!.role!
+        );
 
       res.status(200).json({
         success: true,
-        message: 'Leads fetched successfully',
+        message: "Leads fetched successfully",
         data: leads,
       });
     }

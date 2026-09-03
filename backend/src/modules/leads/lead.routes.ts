@@ -8,6 +8,7 @@ import {
 } from './lead.validation';
 
 import { validate } from '../../middleware/validation.middleware';
+import { authenticateToken } from '../../middleware/Auth';
 
 const router = Router();
 
@@ -107,6 +108,7 @@ const leadController = new LeadController();
  */
 router.post(
     '/',
+    authenticateToken,
     validate(createLeadSchema),
     leadController.createLead
 );
@@ -142,6 +144,7 @@ router.post(
  */
 router.get(
     '/',
+    authenticateToken,
     leadController.getLeads
 );
 

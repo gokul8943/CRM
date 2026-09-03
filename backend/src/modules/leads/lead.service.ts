@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 import { LeadRepository } from './lead.repository';
 import { Contact } from '../../models/contactModel';
+import { UserRole } from '../../middleware/Auth';
 
 export class LeadService {
   private leadRepository: LeadRepository;
@@ -10,20 +11,38 @@ export class LeadService {
     this.leadRepository = new LeadRepository();
   }
 
-  async createLead(data: any) {
-    const contactExists = await Contact.findById(
-      data.contact
-    );
+  async createLead(
+    data: any,
+    userId: string
+  ) {
+    const contactExists =
+      await Contact.findById(data.contact);
 
     if (!contactExists) {
-      throw new Error('Contact not found');
+      throw new Error(
+        "Contact not found"
+      );
     }
 
-    return this.leadRepository.create(data);
+    return this.leadRepository.create({
+      ...data,
+
+      createdBy: userId,
+      updatedBy: userId,
+    });
   }
 
-  async getLeads() {
-    return this.leadRepository.findAll();
+  async getLeads(
+    userId: string,
+    role: UserRole
+  ) {
+    if (role === "admin") {
+      return this.leadRepository.findAll();
+    }
+
+    return this.leadRepository.findByCreatedBy(
+      userId
+    );
   }
 
   async getLeadById(id: string) {

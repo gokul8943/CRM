@@ -15,6 +15,7 @@ import {
 import {
     Lead,
 } from '../../models/lead.model';
+import { UserRole } from '../../middleware/Auth';
 
 export class DealService {
 
@@ -30,9 +31,9 @@ export class DealService {
      * Create Deal
      */
     async createDeal(
-        data: any
+        data: any,
+        userId: string
     ) {
-
         // Check contact
         const contact =
             await Contact.findById(
@@ -41,13 +42,12 @@ export class DealService {
 
         if (!contact) {
             throw new Error(
-                'Contact not found'
+                "Contact not found"
             );
         }
 
         // Check lead if provided
         if (data.lead) {
-
             const lead =
                 await Lead.findById(
                     data.lead
@@ -55,7 +55,7 @@ export class DealService {
 
             if (!lead) {
                 throw new Error(
-                    'Lead not found'
+                    "Lead not found"
                 );
             }
         }
@@ -70,10 +70,14 @@ export class DealService {
 
                 stage: initialStage,
 
+                createdBy: userId,
+                updatedBy: userId,
+
                 stageHistory: [
                     {
                         stage: initialStage,
                         changedAt: new Date(),
+                        changedBy: userId,
                     },
                 ],
             });
@@ -84,9 +88,17 @@ export class DealService {
     /**
      * Get all deals
      */
-    async getDeals() {
-        return this.dealRepository
-            .findAll();
+    async getDeals(
+        userId: string,
+       role: UserRole
+    ) {
+        if (role === "admin") {
+            return this.dealRepository.findAll();
+        }
+
+        return this.dealRepository.findByCreatedBy(
+            userId
+        );
     }
 
     /**
