@@ -31,36 +31,62 @@ export const signUp = async (
 };
 
 
-export const loginUser = async (identifier: string, password: string) => {
-
+export const loginUser = async (
+    identifier: string,
+    password: string
+) => {
     const user = await AuthRepository.findUserByIdentifier(identifier);
 
     if (!user) {
         throw new Error("User not found");
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password
+    );
 
     if (!isPasswordValid) {
         throw new Error("Invalid password");
     }
 
-    const token = jwt.sign(
+    // -------------------------
+    // Access Token
+    // -------------------------
+    const accessToken = jwt.sign(
         {
-            id: user._id,
-            email: user.email
+            id: user._id.toString(),
+            email: user.email,
+            type: "access",
         },
-        process.env.JWT_SECRET as string,
-        { expiresIn: "1d" }
+        process.env.JWT_ACCESS_SECRET as string,
+        {
+            expiresIn: "15m",
+        }
+    );
+
+    // -------------------------
+    // Refresh Token
+    // -------------------------
+    const refreshToken = jwt.sign(
+        {
+            id: user._id.toString(),
+            type: "refresh",
+        },
+        process.env.JWT_REFRESH_SECRET as string,
+        {
+            expiresIn: "7d",
+        }
     );
 
     return {
         user: {
             id: user._id,
             email: user.email,
-            mobile: user.mobile
+            mobile: user.mobile,
         },
-        token
+        accessToken,
+        refreshToken,
     };
 };
 

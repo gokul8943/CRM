@@ -1,12 +1,13 @@
 import type { Request, Response } from "express";
 import * as AuthService from "./authServices"
+import jwt from "jsonwebtoken";
 
 
 export const signup = async (req: Request, res: Response) => {
     try {
         const { firstName, lastName, email, mobile, password } = req.body;
 
-        if ( !email || !mobile || !password) {
+        if (!email || !mobile || !password) {
             return res.status(400).json({
                 message: "Missing required fields"
             });
@@ -38,72 +39,212 @@ export const signup = async (req: Request, res: Response) => {
 };
 
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (
+    req: Request,
+    res: Response
+) => {
     try {
-
         const { identifier, password } = req.body;
 
         if (!identifier || !password) {
             return res.status(400).json({
-                message: "Missing required fields"
+                message: "Identifier and password are required",
             });
         }
 
-        const result = await AuthService.loginUser(identifier, password);
+        const result = await AuthService.loginUser(
+            identifier,
+            password
+        );
 
-        // Set httpOnly cookie with JWT token (1 day expiry)
-        res.cookie("crm_token", result.token, {
+        // Store refresh token in httpOnly cookie
+        res.cookie("crm_refresh_token", result.refreshToken, {
             httpOnly: true,
+
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000, // 1 day in ms
+
+            sameSite:
+                process.env.NODE_ENV === "production"
+                    ? "strict"
+                    : "lax",
+
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+
+            path: "/",
         });
 
         return res.status(200).json({
             message: "User logged in successfully",
+
             user: result.user,
-            token: result.token,
+
+            accessToken: result.accessToken,
         });
 
     } catch (error: any) {
 
         if (error.message === "User not found") {
-            return res.status(400).json({ message: "Invalid username/email/mobile" });
+            return res.status(401).json({
+                message: "Invalid username/email/mobile",
+            });
         }
 
         if (error.message === "Invalid password") {
-            return res.status(400).json({ message: "Invalid password" });
+            return res.status(401).json({
+                message: "Invalid password",
+            });
         }
 
+        console.error("Login error:", error);
+
         return res.status(500).json({
-            message: "Internal server error"
+            message: "Internal server error",
         });
     }
 };
 
-export const logout = (_req: Request, res: Response) => {
-    res.clearCookie("crm_token", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+export const logout = async (
+    req: Request,
+    res: Response
+) => {
+
+    res.clearCookie(
+        'crm_refresh_token',
+        {
+            httpOnly: true,
+
+            secure:
+                process.env.NODE_ENV === 'production',
+
+            sameSite:
+                process.env.NODE_ENV === 'production'
+                    ? 'strict'
+                    : 'lax',
+
+            path: '/',
+        }
+    );
+
+    return res.status(200).json({
+        message: 'Logged out successfully',
     });
-    return res.status(200).json({ message: "Logged out successfully" });
 };
 
-export const getMe = async (req: Request, res: Response) => {
+export const getMe = async (
+    req: Request,
+    res: Response
+) => {
     try {
-        const token = req.cookies?.crm_token;
-        if (!token) {
-            return res.status(401).json({ message: "Not authenticated" });
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader) {
+            return res.status(401).json({
+                message: "Access token required",
+            });
         }
-        const jwt = await import("jsonwebtoken");
-        const decoded = jwt.default.verify(token, process.env.JWT_SECRET as string) as any;
+
+        const [scheme, token] = authHeader.split(" ");
+
+        if (scheme !== "Bearer" || !token) {
+            return res.status(401).json({
+                message: "Invalid authorization header",
+            });
+        }
+
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_ACCESS_SECRET as string
+        ) as {
+            id: string;
+            email?: string;
+            type: "access";
+        };
+
+        if (decoded.type !== "access") {
+            return res.status(401).json({
+                message: "Invalid access token",
+            });
+        }
+
         return res.status(200).json({
             message: "Authenticated",
-            user: { id: decoded.id, email: decoded.email },
+            user: {
+                id: decoded.id,
+                email: decoded.email,
+            },
         });
-    } catch {
-        return res.status(401).json({ message: "Invalid or expired token" });
+
+    } catch (error) {
+
+        if (error instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({
+                message: "Access token expired",
+            });
+        }
+
+        return res.status(401).json({
+            message: "Invalid access token",
+        });
+    }
+};
+
+
+export const refreshAccessToken = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const refreshToken =
+            req.cookies?.crm_refresh_token;
+
+        if (!refreshToken) {
+            return res.status(401).json({
+                message: "Refresh token not found",
+            });
+        }
+
+        const decoded = jwt.verify(
+            refreshToken,
+            process.env.JWT_REFRESH_SECRET as string
+        ) as {
+            id: string;
+            type: string;
+        };
+
+        if (decoded.type !== "refresh") {
+            return res.status(401).json({
+                message: "Invalid refresh token",
+            });
+        }
+
+        const accessToken = jwt.sign(
+            {
+                id: decoded.id,
+                type: "access",
+            },
+            process.env.JWT_ACCESS_SECRET as string,
+            {
+                expiresIn: "15m",
+            }
+        );
+
+        return res.status(200).json({
+            accessToken,
+        });
+
+    } catch (error) {
+
+        if (
+            error instanceof jwt.TokenExpiredError
+        ) {
+            return res.status(401).json({
+                message: "Refresh token expired. Please login again.",
+            });
+        }
+
+        return res.status(401).json({
+            message: "Invalid refresh token",
+        });
     }
 };
 

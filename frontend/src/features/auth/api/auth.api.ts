@@ -17,5 +17,6 @@ export const logout = async (): Promise<void> => {
 
 export const getCurrentUser = async (): Promise<MeResponse> => {
   const response = await apiClient.get<MeResponse>('/auth/me');
+  console.log('getCurrentUser response:', response.data);
   return response.data;
 };

@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../api/auth.api';
-import { useAuth } from '../AuthContext';
+import { useAuthStore } from '../../../store/auth.store';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const setAuth = useAuthStore(
+    (state: any) => state.setAuth
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +25,10 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       const result = await login({ identifier, password });
-      setUser(result.user);
+      setAuth(
+        result.user,
+        result.accessToken
+      );
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
@@ -36,6 +42,7 @@ const LoginPage: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand */}
         <div className="flex flex-col items-center">
+
           <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
             CRM
           </h2>

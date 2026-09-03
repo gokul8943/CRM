@@ -7,8 +7,14 @@ export interface AuthUser {
 }
 
 export interface LoginRequest {
-  identifier: string; // email or mobile
+  identifier: string;
   password: string;
+}
+
+export interface LoginResponse {
+  message: string;
+  user: AuthUser;
+  accessToken: string;
 }
 
 export interface SignupRequest {
@@ -19,12 +25,6 @@ export interface SignupRequest {
   password: string;
 }
 
-export interface LoginResponse {
-  message: string;
-  user: AuthUser;
-  token: string;
-}
-
 export interface SignupResponse {
   message: string;
   user: AuthUser;
@@ -33,4 +33,8 @@ export interface SignupResponse {
 export interface MeResponse {
   message: string;
   user: AuthUser;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
 }
