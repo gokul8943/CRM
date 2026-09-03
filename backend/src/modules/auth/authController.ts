@@ -243,11 +243,7 @@ export const getMe = async (
                 id: user._id,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email,
-                mobile: user.mobile,
-                role: user.role,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt,
+                role: user.role
             },
         });
 

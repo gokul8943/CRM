@@ -11,6 +11,7 @@ import { DealsPage } from './features/deals/pages/DealsPage';
 import { ReportsPage } from './features/reports/pages/ReportsPage';
 import LoginPage from './features/auth/pages/LoginPage';
 import SignupPage from './features/auth/pages/SignupPage';
+import RoleRoute from './components/common/RoleRoutes';
 
 const App: React.FC = () => {
   return (
@@ -18,22 +19,90 @@ const App: React.FC = () => {
       <ToastProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public auth routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
 
-            {/* Protected CRM routes */}
+            {/* Public */}
+            <Route
+              path="/login"
+              element={<LoginPage />}
+            />
+
+            <Route
+              path="/signup"
+              element={<SignupPage />}
+            />
+
+            {/* Authenticated */}
             <Route element={<ProtectedRoute />}>
-              <Route element={<DashboardLayout />}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/contacts" element={<ContactsPage />} />
-                <Route path="/leads" element={<LeadsPage />} />
-                <Route path="/deals" element={<DealsPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+              <Route
+                element={<DashboardLayout />}
+              >
+
+                <Route
+                  path="/"
+                  element={
+                    <Navigate
+                      to="/dashboard"
+                      replace
+                    />
+                  }
+                />
+
+                <Route
+                  path="/dashboard"
+                  element={<DashboardPage />}
+                />
+
+                {/* ADMIN ONLY */}
+                <Route element={
+                  <RoleRoute
+                    allowedRoles={["admin"]}
+                  />
+                }>
+                  <Route
+                    path="/contacts"
+                    element={<ContactsPage />}
+                  />
+
+                  <Route
+                    path="/reports"
+                    element={<ReportsPage />}
+                  />
+                </Route>
+
+                {/* ADMIN + AGENT */}
+                <Route element={
+                  <RoleRoute
+                    allowedRoles={[
+                      "admin",
+                      "agent",
+                    ]}
+                  />
+                }>
+                  <Route
+                    path="/leads"
+                    element={<LeadsPage />}
+                  />
+
+                  <Route
+                    path="/deals"
+                    element={<DealsPage />}
+                  />
+                </Route>
+
+                <Route
+                  path="*"
+                  element={
+                    <Navigate
+                      to="/dashboard"
+                      replace
+                    />
+                  }
+                />
+
               </Route>
             </Route>
+
           </Routes>
         </BrowserRouter>
       </ToastProvider>

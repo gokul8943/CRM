@@ -81,7 +81,7 @@ export const DashboardPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-linear-to-r from-slate-950 via-slate-900 to-slate-800 p-6 md:p-8 rounded-3xl text-white shadow-xl">
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
-            Welcome to Mini CRM
+            Welcome to CRM
           </h1>
           <p className="text-slate-300 text-sm max-w-xl">
             Track customer lifecycles from lead discovery and stage advancement to closed revenue.

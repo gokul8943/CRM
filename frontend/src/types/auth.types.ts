@@ -1,9 +1,13 @@
+
+export type UserRole = "admin" | "agent";
+
 export interface AuthUser {
   id: string;
   email: string;
   mobile?: string;
   firstName?: string;
   lastName?: string;
+  role: UserRole;
 }
 
 export interface LoginRequest {
