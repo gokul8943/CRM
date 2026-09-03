@@ -1,20 +1,34 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, {
+    Document,
+    Schema,
+} from "mongoose";
 
 export enum LeadStatus {
-    NEW = 'NEW',
-    CONTACTED = 'CONTACTED',
-    QUALIFIED = 'QUALIFIED',
-    LOST = 'LOST',
+    NEW = "NEW",
+    CONTACTED = "CONTACTED",
+    QUALIFIED = "QUALIFIED",
+    LOST = "LOST",
 }
 
 export interface ILead extends Document {
     contact: mongoose.Types.ObjectId;
+
     title: string;
+
     status: LeadStatus;
+
     source?: string;
+
     value?: number;
+
     description?: string;
+
     assignedTo?: mongoose.Types.ObjectId;
+
+    // Audit fields
+    createdBy: mongoose.Types.ObjectId;
+    updatedBy: mongoose.Types.ObjectId;
+
     createdAt: Date;
     updatedAt: Date;
 }
@@ -23,13 +37,19 @@ const leadSchema = new Schema<ILead>(
     {
         contact: {
             type: Schema.Types.ObjectId,
-            ref: 'Contact',
-            required: [true, 'Contact is required'],
+            ref: "Contact",
+            required: [
+                true,
+                "Contact is required",
+            ],
         },
 
         title: {
             type: String,
-            required: [true, 'Lead title is required'],
+            required: [
+                true,
+                "Lead title is required",
+            ],
             trim: true,
         },
 
@@ -46,7 +66,10 @@ const leadSchema = new Schema<ILead>(
 
         value: {
             type: Number,
-            min: [0, 'Lead value cannot be negative'],
+            min: [
+                0,
+                "Lead value cannot be negative",
+            ],
         },
 
         description: {
@@ -56,7 +79,27 @@ const leadSchema = new Schema<ILead>(
 
         assignedTo: {
             type: Schema.Types.ObjectId,
-            ref: 'User',
+            ref: "User",
+        },
+
+        // User who created the lead
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: [
+                true,
+                "Created by is required",
+            ],
+        },
+
+        // User who last updated the lead
+        updatedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: [
+                true,
+                "Updated by is required",
+            ],
         },
     },
     {
@@ -64,7 +107,30 @@ const leadSchema = new Schema<ILead>(
     }
 );
 
+/**
+ * Indexes
+ */
+leadSchema.index({
+    contact: 1,
+});
+
+leadSchema.index({
+    assignedTo: 1,
+});
+
+leadSchema.index({
+    status: 1,
+});
+
+leadSchema.index({
+    createdBy: 1,
+});
+
+leadSchema.index({
+    updatedBy: 1,
+});
+
 export const Lead = mongoose.model<ILead>(
-    'Lead',
+    "Lead",
     leadSchema
 );

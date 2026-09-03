@@ -7,6 +7,7 @@ import {
 } from './contact.validation';
 
 import { validate } from '../../middleware/validation.middleware';
+import { authenticateToken } from '../../middleware/Auth';
 
 const router = Router();
 
@@ -52,7 +53,8 @@ const contactController =
 *         description: Validation error
 */
 router.post(
-    '/',
+    "/",
+    authenticateToken,
     validate(createContactSchema),
     contactController.createContact
 );
@@ -71,6 +73,7 @@ router.post(
  */
 router.get(
     '/',
+    authenticateToken,
     contactController.getContacts
 );
 

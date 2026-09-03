@@ -1,12 +1,30 @@
-import type { Request, Response, NextFunction } from "express";
-import jwt, { type JwtPayload } from "jsonwebtoken";
+import type {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 
-// Extend Express Request type
+import jwt, {
+  type JwtPayload,
+} from "jsonwebtoken";
+
+
+export type UserRole = "admin" | "agent";
+// Extend Express Request
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
-    email: string;
+    email?: string;
+    role: UserRole;
   };
+}
+
+interface AccessTokenPayload
+  extends JwtPayload {
+  id: string;
+  email?: string;
+  type: "access";
 }
 
 export const authenticateToken = (
@@ -14,30 +32,80 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction
 ) => {
-  // Accept token from cookie (preferred) or Authorization header
-  const cookieToken = req.cookies?.crm_token;
-  const authHeader = req.headers.authorization;
-  const headerToken = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-  const token = cookieToken || headerToken;
+  const accessToken =
+    req.cookies?.crm_access_token;
 
-  if (!token) {
-    return res.status(401).json({ message: "Access token missing" });
+  if (!accessToken) {
+    return res.status(401).json({
+      message: "Access token missing",
+    });
   }
 
-  if (!process.env.JWT_SECRET) {
-    return res.status(500).json({ message: "JWT secret not configured" });
+  const accessSecret =
+    process.env.JWT_ACCESS_SECRET;
+
+  if (!accessSecret) {
+    console.error(
+      "JWT_ACCESS_SECRET is not configured"
+    );
+
+    return res.status(500).json({
+      message:
+        "Authentication configuration error",
+    });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(
+      accessToken,
+      accessSecret
+    ) as AccessTokenPayload;
+
+    // Make sure this is an access token
+    if (decoded.type !== "access") {
+      return res.status(401).json({
+        message: "Invalid access token",
+      });
+    }
+
+    if (!decoded.id) {
+      return res.status(401).json({
+        message: "Invalid token payload",
+      });
+    }
 
     req.user = {
       id: decoded.id,
       email: decoded.email,
+      role: decoded.role as UserRole,
     };
 
     next();
   } catch (error) {
-    return res.status(403).json({ message: "Invalid or expired access token" });
+    if (
+      error instanceof jwt.TokenExpiredError
+    ) {
+      return res.status(401).json({
+        message: "Access token expired",
+      });
+    }
+
+    if (
+      error instanceof jwt.JsonWebTokenError
+    ) {
+      return res.status(401).json({
+        message: "Invalid access token",
+      });
+    }
+
+    console.error(
+      "Authentication error:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "Authentication failed",
+    });
   }
 };

@@ -29,7 +29,7 @@ const navigation: NavigationItem[] = [
     name: "Contacts",
     path: "/contacts",
     icon: Users,
-    roles: ["admin"],
+    roles: ["admin", "agent"],
   },
   {
     name: "Leads",

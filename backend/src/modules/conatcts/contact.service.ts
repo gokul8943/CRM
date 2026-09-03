@@ -1,3 +1,4 @@
+import { UserRole } from '../../middleware/Auth';
 import { ContactRepository } from './contact.repository';
 
 export class ContactService {
@@ -7,21 +8,40 @@ export class ContactService {
     this.contactRepository = new ContactRepository();
   }
 
-  async createContact(data: any) {
+  async createContact(
+    data: any,
+    userId: string
+  ) {
     const existingContact =
-      await this.contactRepository.findByEmail(data.email);
+      await this.contactRepository.findByEmail(
+        data.email
+      );
 
     if (existingContact) {
       throw new Error(
-        'Contact with this email already exists'
+        "Contact with this email already exists"
       );
     }
 
-    return this.contactRepository.create(data);
+    return this.contactRepository.create({
+      ...data,
+
+      createdBy: userId,
+      updatedBy: userId,
+    });
   }
 
-  async getContacts() {
-    return this.contactRepository.findAll();
+  async getContacts(
+    userId: string,
+    role: UserRole
+  ) {
+    if (role === "admin") {
+      return this.contactRepository.findAll();
+    }
+
+    return this.contactRepository.findByCreatedBy(
+      userId
+    );
   }
 
   async getContactById(id: string) {

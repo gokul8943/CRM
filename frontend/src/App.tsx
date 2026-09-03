@@ -60,11 +60,6 @@ const App: React.FC = () => {
                   />
                 }>
                   <Route
-                    path="/contacts"
-                    element={<ContactsPage />}
-                  />
-
-                  <Route
                     path="/reports"
                     element={<ReportsPage />}
                   />
@@ -79,6 +74,12 @@ const App: React.FC = () => {
                     ]}
                   />
                 }>
+
+                  <Route
+                    path="/contacts"
+                    element={<ContactsPage />}
+                  />
+
                   <Route
                     path="/leads"
                     element={<LeadsPage />}

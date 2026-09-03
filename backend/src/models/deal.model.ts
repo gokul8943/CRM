@@ -1,15 +1,15 @@
 import mongoose, {
     Document,
     Schema,
-} from 'mongoose';
+} from "mongoose";
 
 export enum DealStage {
-    PROSPECTING = 'PROSPECTING',
-    QUALIFICATION = 'QUALIFICATION',
-    PROPOSAL = 'PROPOSAL',
-    NEGOTIATION = 'NEGOTIATION',
-    CLOSED_WON = 'CLOSED_WON',
-    CLOSED_LOST = 'CLOSED_LOST',
+    PROSPECTING = "PROSPECTING",
+    QUALIFICATION = "QUALIFICATION",
+    PROPOSAL = "PROPOSAL",
+    NEGOTIATION = "NEGOTIATION",
+    CLOSED_WON = "CLOSED_WON",
+    CLOSED_LOST = "CLOSED_LOST",
 }
 
 export interface IStageHistory {
@@ -35,6 +35,10 @@ export interface IDeal extends Document {
     description?: string;
 
     stageHistory: IStageHistory[];
+
+    // Audit fields
+    createdBy: mongoose.Types.ObjectId;
+    updatedBy: mongoose.Types.ObjectId;
 
     createdAt: Date;
 
@@ -64,23 +68,23 @@ const dealSchema = new Schema<IDeal>(
     {
         contact: {
             type: Schema.Types.ObjectId,
-            ref: 'Contact',
+            ref: "Contact",
             required: [
                 true,
-                'Contact is required',
+                "Contact is required",
             ],
         },
 
         lead: {
             type: Schema.Types.ObjectId,
-            ref: 'Lead',
+            ref: "Lead",
         },
 
         title: {
             type: String,
             required: [
                 true,
-                'Deal title is required',
+                "Deal title is required",
             ],
             trim: true,
         },
@@ -89,11 +93,11 @@ const dealSchema = new Schema<IDeal>(
             type: Number,
             required: [
                 true,
-                'Deal value is required',
+                "Deal value is required",
             ],
             min: [
                 0,
-                'Deal value cannot be negative',
+                "Deal value cannot be negative",
             ],
         },
 
@@ -105,7 +109,7 @@ const dealSchema = new Schema<IDeal>(
 
         assignedTo: {
             type: Schema.Types.ObjectId,
-            ref: 'User',
+            ref: "User",
         },
 
         expectedCloseDate: {
@@ -120,6 +124,26 @@ const dealSchema = new Schema<IDeal>(
         stageHistory: {
             type: [stageHistorySchema],
             default: [],
+        },
+
+        // User who created the deal
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: [
+                true,
+                "Created by is required",
+            ],
+        },
+
+        // User who last updated the deal
+        updatedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: [
+                true,
+                "Updated by is required",
+            ],
         },
     },
     {
@@ -143,8 +167,15 @@ dealSchema.index({
     assignedTo: 1,
 });
 
-export const Deal =
-    mongoose.model<IDeal>(
-        'Deal',
-        dealSchema
-    );
+dealSchema.index({
+    createdBy: 1,
+});
+
+dealSchema.index({
+    updatedBy: 1,
+});
+
+export const Deal = mongoose.model<IDeal>(
+    "Deal",
+    dealSchema
+);

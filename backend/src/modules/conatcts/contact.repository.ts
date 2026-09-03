@@ -10,6 +10,14 @@ export class ContactRepository {
             .sort({ createdAt: -1 });
     }
 
+    async findByCreatedBy(userId: string) {
+        return Contact.find({
+            createdBy: userId,
+        }).sort({
+            createdAt: -1,
+        });
+    }
+
     async findById(id: string) {
         return Contact.findById(id);
     }

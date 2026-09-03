@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import { ContactService } from './contact.service';
 import { asyncHandler } from '../../utils/asyncHandler';
+import { AuthRequest } from '../../middleware/Auth';
 
 export class ContactController {
     private contactService: ContactService;
@@ -11,24 +12,36 @@ export class ContactController {
     }
 
     createContact = asyncHandler(
-        async (req: Request, res: Response) => {
-            const contact = await this.contactService.createContact(req.body);
+        async (req: AuthRequest, res: Response) => {
+            const userId = req.user?.id;
+            if (!userId) {
+                throw new Error('Authenticated user is required');
+            }
+            const contact =
+                await this.contactService.createContact(
+                    req.body,
+                    userId
+                );
 
             res.status(201).json({
                 success: true,
-                message: 'Contact created successfully',
+                message: "Contact created successfully",
                 data: contact,
             });
         }
     );
 
     getContacts = asyncHandler(
-        async (_req: Request, res: Response) => {
-            const contacts = await this.contactService.getContacts();
+        async (req: AuthRequest, res: Response) => {
+            const contacts =
+                await this.contactService.getContacts(
+                    req.user!.id,
+                    req.user!.role
+                );
 
             res.status(200).json({
                 success: true,
-                message: 'Contacts fetched successfully',
+                message: "Contacts fetched successfully",
                 data: contacts,
             });
         }
